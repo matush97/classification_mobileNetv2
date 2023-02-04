@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import itertools
 import json
 
+
 # Functions
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
@@ -31,14 +32,15 @@ def plot_confusion_matrix(cm, classes,
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(j, i, cm[i, j],
-            horizontalalignment="center",
-            color="white" if cm[i, j] > thresh else "black")
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
-def custom_decode_prediction(prediction, top = 1, class_list_path='mobileNet_1.json'):
+
+def custom_decode_prediction(prediction, top=1, class_list_path='mobileNet_1.json'):
     # if len(prediction.shape) != 10 or prediction.shape[1] != 7:  # your classes number
     #     raise ValueError('`decode_predictions` expects '
     #                      'a batch of predictions '
@@ -48,11 +50,11 @@ def custom_decode_prediction(prediction, top = 1, class_list_path='mobileNet_1.j
 
     with open(class_list_path) as f:
         class_index = json.load(f)
-        
+
     results = []
     for pred in prediction:
         top_indices = pred.argsort()[-top:][::-1]
         result = [tuple(class_index[str(i)]) + (pred[i],) for i in top_indices]
-        result.sort(key=lambda x: x[2], reverse=True)
+        result.sort(key=lambda x: x[1], reverse=True)
         results.append(result)
     return results

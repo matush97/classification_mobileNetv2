@@ -11,11 +11,12 @@ img_path = '../dataset/bird.jpg'
 
 # initializing the model to predict the image details using predefined models.
 model = tf.keras.applications.mobilenet_v2.MobileNetV2()
+model.summary()
 
-img = image.load_img(img_path, target_size=(224,224))
+img = image.load_img(img_path, target_size=(224, 224))
 img_array = image.img_to_array(img)
 img_array_expended_dims = np.expand_dims(img_array, axis=0)
-preprocessed_image = tf.keras.applications.mobilenet_v2.preprocess_input(img_array_expended_dims)
+preprocessed_image = tf.keras.applications.mobilenet_v3.preprocess_input(img_array_expended_dims)
 predictions = model.predict(preprocessed_image)
 
 # To predict and decode the image details

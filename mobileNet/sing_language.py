@@ -16,33 +16,31 @@ import json
 from function import plot_confusion_matrix
 
 # Organize data into train, valid, test dirs
-os.chdir('dataset/steering-wheel')
-if os.path.isdir('train/drzi/') is False:
+os.chdir('dataset/Sign-Language-Digits')
+if os.path.isdir('train/0/') is False:
     os.mkdir('train')
     os.mkdir('valid')
     os.mkdir('test')
 
-    # for i in range(0, 2):
-    for i in ['drzi', 'nedrzi']:
+    for i in range(0, 10):
         shutil.move(f'{i}', 'train')
         os.mkdir(f'valid/{i}')
         os.mkdir(f'test/{i}')
 
-        valid_samples = random.sample(os.listdir(f'train/{i}'), 200)
+        valid_samples = random.sample(os.listdir(f'train/{i}'), 30)
         for j in valid_samples:
             shutil.move(f'train/{i}/{j}', f'valid/{i}')
 
-        test_samples = random.sample(os.listdir(f'train/{i}'), 100)
+        test_samples = random.sample(os.listdir(f'train/{i}'), 5)
         for k in test_samples:
             shutil.move(f'train/{i}/{k}', f'test/{i}')
 os.chdir('../..')
 
 # Process the Data
-train_path = 'dataset/steering-wheel/train'
-valid_path = 'dataset/steering-wheel/valid'
-test_path = 'dataset/steering-wheel/test'
+train_path = 'dataset/Sign-Language-Digits/train'
+valid_path = 'dataset/Sign-Language-Digits/valid'
+test_path = 'dataset/Sign-Language-Digits/test'
 
-# todo zmenit na verziu v3?
 train_batches = ImageDataGenerator(
     preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input).flow_from_directory(
     directory=train_path, target_size=(224, 224), batch_size=10)
@@ -53,15 +51,14 @@ test_batches = ImageDataGenerator(
     preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input).flow_from_directory(
     directory=test_path, target_size=(224, 224), batch_size=10, shuffle=False)
 
-print(test_batches.class_indices)
-
 # Build The fine-tuned model
 mobile = tf.keras.applications.mobilenet_v2.MobileNetV2()
 mobile.summary()
 
 x = mobile.layers[-6].output
+# https://stackoverflow.com/questions/70326871/shape-error-while-fine-tuning-mobilenet-on-a-custom-data-set
 x = tf.keras.layers.Flatten()(x)
-output = Dense(units=2, activation='softmax')(x)
+output = Dense(units=10, activation='softmax')(x)
 
 model = Model(inputs=mobile.input, outputs=output)
 
@@ -75,7 +72,7 @@ model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentro
 
 model.fit(x=train_batches,
           validation_data=valid_batches,
-          epochs=30,
+          epochs=3,
           verbose=2
           )
 
@@ -87,26 +84,24 @@ cm = confusion_matrix(y_true=test_labels, y_pred=predictions.argmax(axis=1))  # 
 print(test_batches.class_indices)
 class_indices = test_batches.class_indices
 
-cm_plot_labels = ['drzi', 'nedrzi']
+cm_plot_labels = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 plot_confusion_matrix(cm=cm, classes=cm_plot_labels, title='Confusion Matrix')
 
 # Ulozenie modelu
 model_json = model.to_json()
-with open('mobileNet_steering_wheel_1.json', 'w') as json_file:
+with open('mobileNet_1.json', 'w') as json_file:
     json_file.write(model_json)
 
 from keras.models import save_model
 
-network_saved = save_model(model, 'mobileNet_steering_wheel_1.hdf5')
+network_saved = save_model(model, 'mobileNet_weights_1.hdf5')
 
-# todo custom class.json
+# custom class.json
 class_indices_dictionary = {}
-i = 0
 
 for class_item in class_indices:
-    class_indices_dictionary[i] = [str(class_item)]
-    i += 1
+    class_indices_dictionary[class_item] = [str(class_indices[class_item])]
 
 
-with open('class_index_steering_wheel_1.json', 'w') as file:
+with open('class_index.json', 'w') as file:
     file.write(json.dumps(class_indices_dictionary))
