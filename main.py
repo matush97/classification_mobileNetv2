@@ -1,12 +1,10 @@
-# https://deeplizard.com/learn/video/FNqp4ZY0wDY
-# https://deeplizard.com/learn/video/Zrt76AIbeh4
-
-# Importing the libraries
+# Import the libraries
 import tensorflow as tf
 from keras.preprocessing.image import ImageDataGenerator
 from keras.layers import Dense
 from keras.models import Model
 from keras.optimizers import Adam
+from keras.models import save_model
 from sklearn.metrics import confusion_matrix
 
 import os
@@ -16,12 +14,16 @@ import json
 from function import plot_confusion_matrix, plot_history_training
 
 # constants
+dataset = "dataset/steering-wheel-6"
+model_name = "mobileNet_steering_wheel_6_v5"
+class_model_name = "class_index_steering_wheel_6_v5"
+
 not_hold = "not_hold"
 one_hand_hold = "one_hand_hold"
 two_hand_hold = "two_hand_hold"
 
 # Organize data into train, valid, test dirs
-os.chdir('dataset/steering-wheel-1')
+os.chdir(f'{dataset}')
 if os.path.isdir('train/not_hold/') is False:
     os.mkdir('train')
     os.mkdir('valid')
@@ -42,9 +44,9 @@ if os.path.isdir('train/not_hold/') is False:
 os.chdir('../..')
 
 # Process the Data
-train_path = 'dataset/steering-wheel-1/train'
-valid_path = 'dataset/steering-wheel-1/valid'
-test_path = 'dataset/steering-wheel-1/test'
+train_path = dataset + "/train"
+valid_path = dataset + "/valid"
+test_path = dataset + "/test"
 
 train_batches = ImageDataGenerator(
     preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input).flow_from_directory(
@@ -78,35 +80,31 @@ model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentro
 
 history = model.fit(x=train_batches,
                     validation_data=valid_batches,
-                    epochs=50,
+                    epochs=1,
                     verbose=2
                     )
 
 # Trainig graph
-print(history.history.keys())
 plot_history_training(history)
 
-# predict sign language digits
+# Prediction from model and creation confusion matrix
 test_labels = test_batches.classes
 predictions = model.predict(x=test_batches, steps=len(test_batches), verbose=0)
 cm = confusion_matrix(y_true=test_labels, y_pred=predictions.argmax(axis=1))  # confusion matrix
 
-print(test_batches.class_indices)
 class_indices = test_batches.class_indices
 
 cm_plot_labels = [not_hold, one_hand_hold, two_hand_hold]
 plot_confusion_matrix(cm=cm, classes=cm_plot_labels, title='Confusion Matrix')
 
-# Ulozenie modelu
+# Save trained model
 model_json = model.to_json()
-with open('train_result/mobileNet_steering_wheel_1_v5.json', 'w') as json_file:
+with open("train_result/" + model_name + ".json", 'w') as json_file:
     json_file.write(model_json)
 
-from keras.models import save_model
+network_saved = save_model(model, "train_result/" + model_name + ".hdf5")
 
-network_saved = save_model(model, 'train_result/mobileNet_steering_wheel_1_v5.hdf5')
-
-# Custom class.json
+# Save custom class.json
 class_indices_dictionary = {}
 i = 0
 
@@ -114,5 +112,5 @@ for class_item in class_indices:
     class_indices_dictionary[i] = [str(class_item)]
     i += 1
 
-with open('train_result/class_index_steering_wheel_1_v5.json', 'w') as file:
+with open("train_result/" + class_model_name + ".json", 'w') as file:
     file.write(json.dumps(class_indices_dictionary))
