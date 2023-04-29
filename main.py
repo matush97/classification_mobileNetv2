@@ -80,7 +80,7 @@ model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentro
 
 history = model.fit(x=train_batches,
                     validation_data=valid_batches,
-                    epochs=1,
+                    epochs=25,
                     verbose=2
                     )
 
