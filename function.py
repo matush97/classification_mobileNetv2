@@ -62,13 +62,6 @@ def plot_history_training(history):
 
 
 def custom_decode_prediction(prediction, top=1, class_list_path='mobileNet_1.json'):
-    # if len(prediction.shape) != 10 or prediction.shape[1] != 7:  # your classes number
-    #     raise ValueError('`decode_predictions` expects '
-    #                      'a batch of predictions '
-    #                      '(i.e. a 2D array of shape (samples, 1000)). '
-    #                      'Found array with shape: ' + str(prediction.shape))
-    # index_list = json.load(open(class_list_path))
-
     with open(class_list_path) as f:
         class_index = json.load(f)
 
