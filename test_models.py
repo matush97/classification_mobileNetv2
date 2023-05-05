@@ -11,7 +11,7 @@ model_name = "mobileNet_steering_wheel_6_v2"
 class_model_name = "class_index_steering_wheel_6_v2"
 img_path = 'dataset/image3.jpg'
 
-# nacitanie ulozeneho modelu
+# Scanning of the saved model
 with open('train_result/' + model_name + '.json', 'r') as json_file:
     json_saved_model = json_file.read()
 
@@ -32,7 +32,7 @@ prediction = network_loaded.predict(test_image)
 predictionLabel = custom_decode_prediction(prediction, top=1, class_list_path='train_result/' + class_model_name +
                                                                               '.json')
 
-# Vypisanie hodnot obrazka
+# Displaying the values of the image
 print("predictionLabel", predictionLabel)
 print("predictionLabel[0][0]", predictionLabel[0][0])
 print("predictionLabel[0][0][0]", predictionLabel[0][0][0])
